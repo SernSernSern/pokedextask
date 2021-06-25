@@ -1,11 +1,11 @@
 import React from 'react'
-import { observer, useDoc, emit, useLocal} from 'startupjs'
-import { Div, Span, Content, Button, Card, H3, Row } from '@startupjs/ui'
+import { observer, useDoc, emit, useLocal } from 'startupjs'
 import { Image } from 'react-native'
+import { Span, Content, Button, Card, H3, Row } from '@startupjs/ui'
 import { faArrowLeft, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons'
 import './index.styl'
 
-export default observer(function GetPokemon() {
+export default observer(function PokemonComponent () {
   const [id] = useLocal('$render.params.id')
   const [pokemon, $pokemon] = useDoc('pokemon', id)
 
@@ -19,7 +19,7 @@ export default observer(function GetPokemon() {
   }
 
   const edit = () => {
-    emit('url', '/add/'+id)
+    emit('url', '/add/' + id)
   }
 
   return pug`
@@ -39,14 +39,14 @@ export default observer(function GetPokemon() {
       Content
         Row(align='center')
           Image.image(source={uri: pokemon.url} resizeMode='contain')
-        Span=pokemon.about
-        Row(align='between')
+        Span.aboutPokemon=pokemon.about
+        Row.pokemonTypes(align='between')
           Span(styleName='types'+pokemon.type[0])=pokemon.type[0]
           Span(styleName='types first'+pokemon.type[1])=pokemon.type[1]
-        Card
-          Row(wrap=true)
-            each item, index in pokemon.ability  
-              Card(key=index pushed='s')  
+        Card.typesDescription
+          Row(wrap)
+            each item, index in pokemon.ability
+              Card(key=index pushed='s')
                 Span=item
         Row(align='center')
           Button.button(

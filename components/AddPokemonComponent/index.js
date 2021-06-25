@@ -1,112 +1,136 @@
-import React, { useState, useMemo } from 'react'
-import { Div, TextInput, Button, ArrayInput, Select, Content} from '@startupjs/ui'
+import React, { useState, useEffect, useMemo } from 'react'
 import { observer, useQuery, useValue, useLocal, useDoc, emit } from 'startupjs'
-import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import { Div, Button, Input } from '@startupjs/ui'
 
 import './index.styl'
-import { useEffect } from 'react/cjs/react.development'
+
+const OPTIONS = ['Bug', 'Dragon', 'Fairy', 'Fire', 'Ghost', 'Ground',
+  'Normal', 'Psychic', 'Steel', 'Dark', 'Electric', 'Fighting', 'Flying',
+  'Grass', 'Ice', 'Poison', 'Rock', 'Water'
+]
 
 export default observer(function AddPokemonComponent () {
-  const [name, $name] = useState('')
+  const [errors, $errors] = useValue({})
+  const [name, setName] = useState('')
   const [id] = useLocal('$render.params.id')
   const [pokemonEdit, $pokemonEdit] = useDoc('pokemon', id)
-  const [about, $about] = useState('')
-  const [url, $url] = useState('')
-  const [value, $value] = useValue()
+  const [about, setAbout] = useState('')
+  const [url, setUrl] = useState('')
+  const [value, $value] = useValue([])
   const [pokemon, $pokemon] = useQuery('pokemon', {})
-  const [type, setType] = useState()
-  const [typeTwo, setTypeTwo] = useState()
+  const [firstType, setFirstType] = useState()
+  const [secondType, setSecondType] = useState()
   const [disab, setDisab] = useState(true)
   const [option, setOption] = useState([])
+
+  const query = useMemo(() => {
+    return { name: name }
+  }, [name])
+
+  const [pokemonNames] = useQuery('pokemon', query)
+
   const add = async () => {
-    if(!name || !value || !url || !type || pokemon.filter(e => e.name === name).length > 0) return
-    else{
+    if (!name || !value || !url || !firstType || pokemonNames.length > 0) {
+      !name && $errors.set('name', 'Require name')
+      !value && $errors.set('ability', 'Require ability')
+      !url && $errors.set('url', 'Require url picture')
+      !value && $errors.set('ability', 'Require ability')
+      !firstType && $errors.set('type', 'You need at least one type of Pokémon')
+      pokemonNames.length > 0 && $errors.set('name', 'This Pokemon already exists')
+    } else {
       await $pokemon.add({
         number: pokemon.length + 1,
         name: name,
         about: about,
         ability: value,
-        type: [type, typeTwo],
+        type: [firstType, secondType],
         url: url
       })
-      $name('')
-      $about('')
-      $url('')
-      setType('')
-      setTypeTwo('')
+      setName('')
+      setAbout('')
+      setUrl('')
+      setFirstType('')
+      setSecondType('')
     }
   }
-  
-  useEffect(()=>{
-    if(id){
+
+  useEffect(() => {
+    if (id) {
       setDisab(false)
-      $name(pokemonEdit.name)
-      $about(pokemonEdit.about)
-      $url(pokemonEdit.url)
-      setType(pokemonEdit.type[0])
-      setOption(OPTIONS.filter(function(e){return e != type}))
-      setTypeTwo(pokemonEdit.type[1])
+      setName(pokemonEdit.name)
+      setAbout(pokemonEdit.about)
+      setUrl(pokemonEdit.url)
+      setFirstType(pokemonEdit.type[0])
+      setOption(OPTIONS.filter(function (e) { return e !== firstType }))
+      setSecondType(pokemonEdit.type[1])
       pokemonEdit.ability.forEach(element => {
         $value.push(element)
-      });
-      
+      })
     }
-  }, [])
+  }, [JSON.stringify(pokemonEdit)])
 
-  const OPTIONS = ['Bug', 'Dragon', 'Fairy', 'Fire', 'Ghost', 'Ground',
-    'Normal', 'Psychic', 'Steel', 'Dark', 'Electric', 'Fighting', 'Flying',
-    'Grass', 'Ice', 'Poison', 'Rock', 'Water'
-  ]
-  
   const change = (some) => {
-    if(!some) {
-      setType('')
-      setTypeTwo('')
+    if (!some) {
+      setFirstType('')
+      setSecondType('')
       setDisab(true)
-    }else{
+    } else {
       setDisab(false)
-      setOption(OPTIONS.filter(function(e){return e != some}))
-      setType(some)
+      setOption(OPTIONS.filter(function (e) { return e !== some }))
+      setFirstType(some)
     }
   }
-
-  const edit = async() => {
-    if(!name || !value || !url || !type || pokemon.filter(e => e.name === name && e.name != pokemonEdit.name).length > 0){ 
-      return
-    }else{
-      await $pokemonEdit.set({
-        number:pokemonEdit.number,
+  const edit = () => {
+    if (!name || !value || !url || !firstType || (pokemonNames.length > 0 && pokemonEdit.name !== pokemonNames[0].name)) {
+      !name && $errors.set('name', 'Require name')
+      pokemonNames.length > 0 && $errors.set('name', 'This Pokemon already exists')
+    } else {
+      $pokemonEdit.set({
+        number: pokemonEdit.number,
         name: name,
         about: about,
         ability: value,
-        type: [type, typeTwo],
+        type: [firstType, secondType],
         url: url
       })
       emit('url', '/')
-  }
+    }
   }
 
   return pug`
-    Div 
-      TextInput(
+    Div
+      Input(
+        type='text'
+        error=errors.name
         label='Name pokemon'
         value=name
-        onChangeText=$name
+        onChangeText=val => {
+          setName(val) 
+          $errors.set('name', '')
+        }
       )
-      Select(
+      Input.inputMargin(
+        type='select'
+        error=errors.type
         label='Choose type'
-        value=type
-        onChange= value => change(value)
+        value=firstType
+        onChange= value => {
+          change(value)
+          $errors.set('type', '')
+        }
         options=OPTIONS
       )
-      Select(
+      Input.inputMargin(
+        type='select'
         label='Choose type'
-        value=typeTwo
-        onChange=setTypeTwo
+        value=secondType
+        onChange=setSecondType
         options=option
         disabled=disab
       )
-      ArrayInput(
+      Input.inputMargin(
+        type='array'
+        error = errors.ability
         value=value
         $value=$value
         label='Ability'
@@ -114,19 +138,24 @@ export default observer(function AddPokemonComponent () {
           input: 'text'
         }
       )
-      TextInput(
+      Input.inputMargin(
+        type='text'
         value=about
-        onChangeText=$about
+        onChangeText=setAbout
         label='About pokemon'
       )
-      TextInput(
+      Input.inputMargin(
+        type='text'
+        error=errors.url
         value=url
-        onChangeText=$url
+        onChangeText= val => {
+          setUrl(val)
+          $errors.set('url', '')
+        }
         label='Picture url'
       )
-      Button(
+      Button.inputMargin(
         onPress= id ? edit : add
-        icon=faPlus
-      )
+      )=id?'Edit':'Add'
   `
 })

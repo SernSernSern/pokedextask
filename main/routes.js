@@ -18,15 +18,5 @@ export default (components = {}) => [
     path: '/pokemon/:id',
     exact: true,
     component: components.PPokemon
-  },
-  {
-    path: '/pokemon/search/:name',
-    exact: true,
-    component: components.PPokemons
-  },
-  {
-    path: '/pokemon/',
-    exact: true,
-    component: components.PPokemons
   }
 ]
