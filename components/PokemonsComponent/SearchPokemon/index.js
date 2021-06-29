@@ -11,13 +11,13 @@ const checkboxes = ['Bug', 'Dragon', 'Fairy', 'Fire', 'Ghost', 'Ground',
 ]
 
 export default observer(function SearchPokemon () {
-  const [name = '', $name] = usePage('pokemons/searchByName')
-  const [selected = [], $selected] = usePage('pokemons/selected')
+  const [name = { $regex: '' }, $name] = usePage('pokemons.queryParam.name')
+  const [type = [], $type] = usePage('pokemons.queryParam.type')
 
   const textInputProps = {}
-  if (name) {
+  if (name.$regex) {
     textInputProps.secondaryIcon = faTimesCircle
-    textInputProps.onSecondaryIconPress = () => $name.set('')
+    textInputProps.onSecondaryIconPress = () => $name.set('$regex', '')
   }
 
   return pug`
@@ -25,16 +25,17 @@ export default observer(function SearchPokemon () {
       Content
         Row
           TextInput.input(
-            value=name
-            onChangeText=text => $name.set(text)
+            placeholder='Search pokemon'
+            value=name.$regex
+            onChangeText=text => $name.set('$regex', text)
             ...textInputProps
           )
         Div.multySearch
           Multiselect(
             styleName='port'
-            value=selected
+            value=type
             options=checkboxes
-            onChange=value => $selected.set(value)
+            onChange=value => $type.set(value)
           )
   `
 })

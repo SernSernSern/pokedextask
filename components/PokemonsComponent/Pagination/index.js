@@ -8,8 +8,8 @@ const option = [10, 15, 20]
 
 export default observer(function PokemonList () {
   const [count] = useQuery('pokemon', { $count: 'count' })
-  const [limit = 10, $limit] = usePage('pokemons/pagination/limit')
-  const [offset = 0, $offset] = usePage('pokemons/pagination/offset')
+  const [limit = 10, $limit] = usePage('pokemons.queryParam.$limit')
+  const [offset = 0, $offset] = usePage('pokemons.queryParam.$skip')
 
   return pug`
     Content.main

@@ -101,6 +101,7 @@ export default observer(function AddPokemonComponent () {
     Div
       Input(
         type='text'
+        placeholder='Pokemon name'
         error=errors.name
         label='Name pokemon'
         value=name
@@ -141,11 +142,13 @@ export default observer(function AddPokemonComponent () {
       Input.inputMargin(
         type='text'
         value=about
+        placeholder='About pokemon (optional)'
         onChangeText=setAbout
         label='About pokemon'
       )
       Input.inputMargin(
         type='text'
+        placeholder='Url of picture pokemon'
         error=errors.url
         value=url
         onChangeText= val => {

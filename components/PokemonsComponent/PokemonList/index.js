@@ -12,21 +12,30 @@ const imageStyle = {
 }
 
 export default observer(function PokemonList () {
-  const [name = ''] = usePage('pokemons/searchByName')
-  const [limit = 10] = usePage('pokemons/pagination/limit')
-  const [offset = 0] = usePage('pokemons/pagination/offset')
-  const [selected = []] = usePage('pokemons/selected')
+  const [queryParams, $queryParams] = usePage('pokemons.queryParam')
+  if (!queryParams) {
+    $queryParams.set('name', { $regex: '' })
+    $queryParams.set('$limit', 10)
+    $queryParams.set('$skip', 0)
+    $queryParams.set('type', [])
+  }
   const query = useMemo(() => {
-    const _query = { name: { $regex: name }, $limit: limit, $skip: offset }
-    if (selected.length) _query.type = { $in: selected }
+    const _query = $queryParams.getCopy()
+    if ($queryParams.get('type')) {
+      if ($queryParams.get('type').length > 0) {
+        _query.type = { $in: $queryParams.getCopy('type') }
+      } else {
+        $queryParams.del('type')
+      }
+    }
     return _query
-  }, [JSON.stringify(selected), limit, name, offset])
+  }, [JSON.stringify(queryParams)])
   const [pokemons] = useQuery('pokemon', query)
   return pug`
     Row.centerElement(wrap)
       each pok, index in pokemons
         Card.card(
-          key=index
+          key=pok.id
           onPress =() => emit('url', '/pokemon/' + pok.id)
           styleName={first:!index} 
         )
