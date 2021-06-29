@@ -25,8 +25,8 @@ export default observer(function ({ children }) {
   function renderSidebar () {
     return pug`
       Menu.sidebar-menu
-        MenuItem(url='/') App
-        MenuItem(url='/about') About
+        MenuItem(url='/') Main 
+        MenuItem(url='/add') Add
     `
   }
 
